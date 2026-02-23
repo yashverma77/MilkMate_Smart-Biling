@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MilkMate – Smart Milk Billing</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f0e8; --bg2:#ede7d9; --card:#ffffff; --border:#e2d9cc;
+  --text:#1a1208; --text2:#5a4a35; --text3:#8a7a65;
+  --accent:#d4750a; --accent2:#f59e0b; --accent-light:#fff3cd;
+  --green:#2d8c4e; --green-bg:#e6f7ec;
+  --red:#c0392b; --red-bg:#fdecea;
+  --purple:#7c3aed; --purple-bg:#ede9fe;
+  --shadow:0 4px 24px rgba(0,0,0,0.08);
+  --shadow-lg:0 8px 40px rgba(0,0,0,0.15);
+  --radius:16px; --radius-sm:10px;
+  --tr:0.22s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="dark"] {
+  --bg:#0f0b07; --bg2:#181209; --card:#211a10; --border:#3a2e1e;
+  --text:#f5ead8; --text2:#c4a97a; --text3:#8a7558;
+  --accent:#f59e0b; --accent2:#fbbf24; --accent-light:#2d2000;
+  --green:#34d06e; --green-bg:#0a2618;
+  --red:#f87171; --red-bg:#2d0a0a;
+  --purple:#a78bfa; --purple-bg:#1a0d2e;
+  --shadow:0 4px 24px rgba(0,0,0,0.45);
+  --shadow-lg:0 8px 40px rgba(0,0,0,0.65);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background var(--tr),color var(--tr);}
+
+/* HEADER */
+header{background:var(--card);border-bottom:1.5px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
+.hdr{max-width:1200px;margin:0 auto;padding:0 16px;height:64px;display:flex;align-items:center;gap:12px;}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:1.25rem;color:var(--text);}
+.logo-text span{color:var(--accent);}
+.tagline{font-size:0.7rem;color:var(--text3);display:none;}
+@media(min-width:480px){.tagline{display:block;}}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.nav-tabs{display:flex;gap:3px;background:var(--bg2);border-radius:10px;padding:4px;}
+.nav-tab{padding:6px 13px;border:none;background:transparent;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all var(--tr);white-space:nowrap;}
+.nav-tab.active{background:var(--card);color:var(--accent);box-shadow:0 2px 8px rgba(0,0,0,0.1);font-weight:700;}
+@media(max-width:500px){.nav-tab{padding:6px 8px;font-size:0.72rem;}}
+.theme-btn{width:38px;height:38px;border:1.5px solid var(--border);background:var(--bg2);border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all var(--tr);flex-shrink:0;}
+.theme-btn:hover{background:var(--accent-light);border-color:var(--accent);}
+
+/* MAIN */
+main{max-width:1200px;margin:0 auto;padding:22px 14px 60px;}
+.view{display:none;animation:fadeUp .25s ease;}
+.view.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+/* MONTH NAV */
+.month-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:18px;box-shadow:var(--shadow);}
+.mnav-btn{display:flex;align-items:center;gap:6px;padding:10px 16px;border:2px solid var(--accent);background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;cursor:pointer;color:#fff;font-family:'DM Sans',sans-serif;font-weight:700;transition:all var(--tr);box-shadow:0 3px 12px rgba(212,117,10,0.3);flex-shrink:0;}
+.mnav-btn:hover{transform:scale(1.05);box-shadow:0 5px 20px rgba(212,117,10,0.5);}
+.mnav-btn:active{transform:scale(0.97);}
+.mnav-arrow{font-size:1.3rem;line-height:1;}
+.mnav-word{font-size:0.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+@media(max-width:420px){.mnav-word{display:none;}.mnav-btn{padding:10px 12px;}}
+.month-center{flex:1;text-align:center;}
+.month-name{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.3rem,5vw,2rem);color:var(--text);line-height:1;}
+.month-year-lbl{font-size:0.78rem;color:var(--text3);margin-top:3px;}
+
+/* CONFIG PANEL */
+.config-panel{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:18px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;}
+.cfg-field{display:flex;flex-direction:column;gap:5px;}
+.cfg-field label{font-size:0.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;}
+.cfg-field input{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;width:130px;outline:none;transition:border-color var(--tr);}
+.cfg-field input:focus{border-color:var(--accent);}
+.btn-apply{padding:9px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.84rem;cursor:pointer;height:38px;transition:opacity var(--tr);}
+.btn-apply:hover{opacity:.85;}
+
+/* GROUP PANEL */
+.group-panel{background:var(--card);border:2px solid var(--purple);border-radius:var(--radius);margin-bottom:18px;overflow:hidden;}
+.group-hdr{display:flex;align-items:center;gap:10px;padding:13px 18px;cursor:pointer;user-select:none;background:var(--purple-bg);transition:filter var(--tr);}
+.group-hdr:hover{filter:brightness(.96);}
+.group-hdr h3{font-family:'Syne',sans-serif;font-weight:700;font-size:0.92rem;color:var(--purple);}
+.g-badge{background:var(--purple);color:#fff;font-size:0.65rem;font-weight:700;padding:2px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;}
+.g-chevron{margin-left:auto;color:var(--purple);font-size:12px;transition:transform var(--tr);}
+.group-panel.open .g-chevron{transform:rotate(180deg);}
+.group-body-wrap{display:none;padding:16px 18px 18px;border-top:1.5px solid var(--purple);}
+.group-panel.open .group-body-wrap{display:block;}
+.group-inputs{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:12px;}
+.g-field{display:flex;flex-direction:column;gap:5px;}
+.g-field label{font-size:0.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;}
+.g-field input{padding:8px 11px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;width:108px;outline:none;transition:border-color var(--tr);}
+.g-field input:focus{border-color:var(--purple);}
+.g-preview{padding:8px 14px;background:var(--purple-bg);border:1px dashed var(--purple);border-radius:8px;font-size:0.8rem;font-weight:600;color:var(--purple);align-self:flex-end;height:38px;display:flex;align-items:center;white-space:nowrap;}
+.btn-gapply{padding:9px 18px;background:var(--purple);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.84rem;cursor:pointer;height:38px;transition:opacity var(--tr);}
+.btn-gapply:hover{opacity:.85;}
+.btn-gclear{padding:9px 14px;background:var(--red-bg);color:var(--red);border:1.5px solid var(--red);border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.82rem;cursor:pointer;height:38px;display:none;transition:opacity var(--tr);}
+.btn-gclear:hover{opacity:.8;}
+.rules-list{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.rule-card{display:flex;align-items:center;gap:10px;background:var(--purple-bg);border:1px solid var(--purple);border-radius:10px;padding:9px 14px;}
+.rule-info{flex:1;}
+.rule-range{font-size:0.88rem;font-weight:700;color:var(--purple);}
+.rule-sub{font-size:0.72rem;color:var(--text3);margin-top:2px;}
+.rule-edit-btn,.rule-del-btn{padding:5px 11px;border-radius:7px;font-size:0.74rem;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:opacity var(--tr);}
+.rule-edit-btn{background:var(--purple);color:#fff;}
+.rule-del-btn{background:var(--red-bg);color:var(--red);border:1px solid var(--red);}
+.rule-edit-btn:hover,.rule-del-btn:hover{opacity:.8;}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:18px;}
+.stat-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 12px;text-align:center;}
+.stat-val{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.3rem,3.5vw,1.8rem);color:var(--accent);line-height:1;margin-bottom:4px;}
+.stat-lbl{font-size:0.7rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+
+/* CALENDAR */
+.cal-wrap{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px;}
+.cal-hdr{display:grid;grid-template-columns:repeat(7,1fr);background:var(--bg2);border-bottom:1.5px solid var(--border);}
+.cal-dow{text-align:center;padding:9px 3px;font-size:0.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;}
+.cal-dow.sun{color:var(--red);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);}
+.cal-cell{background:var(--card);min-height:80px;padding:6px 7px;cursor:pointer;transition:background var(--tr);position:relative;}
+.cal-cell.faded{background:var(--bg2);opacity:.45;pointer-events:none;}
+.cal-cell.today{background:var(--accent-light);}
+.cal-cell.today .cal-dnum{color:var(--accent);font-weight:800;}
+.cal-cell:not(.faded):hover{background:var(--bg2);}
+.cal-cell.has-manual{border-top:3px solid var(--accent2);}
+.cal-cell.has-group{border-top:3px solid var(--purple);}
+.cal-dnum{font-size:0.78rem;font-weight:600;color:var(--text2);margin-bottom:4px;}
+.cal-dnum.sun{color:var(--red);}
+.cal-chip{display:inline-block;border-radius:6px;padding:3px 7px;font-size:0.7rem;font-weight:700;color:#fff;margin-top:2px;}
+.cal-chip.manual{background:linear-gradient(135deg,var(--accent),var(--accent2));}
+.cal-chip.grp{background:linear-gradient(135deg,var(--purple),#9333ea);}
+.cal-cost{font-size:0.66rem;color:var(--text3);margin-top:2px;}
+.grp-dot{position:absolute;top:4px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--purple);border:1.5px solid var(--card);}
+@media(max-width:600px){
+  .cal-cell{min-height:58px;padding:4px 4px;}
+  .cal-chip{font-size:0.62rem;padding:2px 4px;}
+  .cal-cost{display:none;}
+  .grp-dot{width:5px;height:5px;}
+}
+@media(max-width:380px){.cal-cell{min-height:46px;}.cal-dnum{font-size:0.68rem;}}
+
+/* PAYMENT ROW */
+.pay-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 18px;}
+.pay-status{display:flex;align-items:center;gap:8px;font-weight:600;font-size:0.88rem;}
+.sdot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.s-paid .sdot{background:var(--green);}
+.s-unpaid .sdot{background:var(--red);}
+.s-paid{color:var(--green);}
+.s-unpaid{color:var(--red);}
+.pay-btn{padding:9px 20px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.86rem;cursor:pointer;transition:all var(--tr);}
+.pay-btn.mk-paid{background:var(--green);color:#fff;box-shadow:0 3px 10px rgba(45,140,78,.3);}
+.pay-btn.mk-unpaid{background:var(--red-bg);color:var(--red);border:1.5px solid var(--red);}
+.pay-btn:hover{opacity:.82;transform:translateY(-1px);}
+.pay-ts{font-size:0.74rem;color:var(--text3);margin-left:auto;}
+
+/* OVERLAYS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.58);backdrop-filter:blur(7px);z-index:200;align-items:center;justify-content:center;padding:16px;}
+.overlay.open{display:flex;}
+@keyframes slideUp{from{transform:translateY(28px);opacity:0;}to{transform:none;opacity:1;}}
+
+/* PAY CONFIRM */
+.pay-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);max-width:420px;width:100%;box-shadow:var(--shadow-lg);animation:slideUp .22s ease;overflow:hidden;}
+.pc-head{padding:22px 22px 14px;text-align:center;border-bottom:1px solid var(--border);}
+.pc-ico{font-size:3rem;line-height:1;margin-bottom:10px;}
+.pc-head h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--text);margin-bottom:6px;}
+.pc-head p{font-size:0.84rem;color:var(--text2);line-height:1.5;}
+.pc-body{padding:14px 22px;display:flex;flex-direction:column;gap:8px;}
+.pc-row{display:flex;justify-content:space-between;align-items:center;padding:9px 13px;border-radius:9px;background:var(--bg2);border:1px solid var(--border);}
+.pc-row.g{background:var(--green-bg);border-color:var(--green);}
+.pc-row.r{background:var(--red-bg);border-color:var(--red);}
+.pc-lbl{font-size:0.78rem;color:var(--text3);font-weight:500;}
+.pc-lbl.g{color:var(--green);font-weight:700;}
+.pc-lbl.r{color:var(--red);font-weight:700;}
+.pc-val{font-weight:700;font-size:0.9rem;color:var(--text);}
+.pc-val.g{color:var(--green);font-size:1rem;}
+.pc-val.r{color:var(--red);}
+.pc-foot{padding:13px 22px;border-top:1.5px solid var(--border);display:flex;gap:10px;}
+.pc-foot .btn{flex:1;text-align:center;}
+
+/* GENERAL CONFIRM */
+.cf-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:28px 24px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow-lg);animation:slideUp .22s ease;}
+.cf-ico{font-size:2.8rem;margin-bottom:12px;}
+.cf-card h3{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--text);margin-bottom:8px;}
+.cf-msg{font-size:0.84rem;color:var(--text2);margin-bottom:20px;line-height:1.55;white-space:pre-line;}
+.cf-detail{background:var(--purple-bg);border:1px solid var(--purple);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:0.85rem;color:var(--purple);font-weight:600;line-height:1.5;}
+.cf-btns{display:flex;gap:10px;justify-content:center;}
+
+/* ENTRY MODAL */
+.modal-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);max-width:420px;width:100%;box-shadow:var(--shadow-lg);animation:slideUp .22s ease;overflow:hidden;}
+.m-head{padding:16px 20px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.m-head h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--text);}
+.m-close{width:30px;height:30px;background:var(--bg2);border:none;border-radius:7px;cursor:pointer;font-size:15px;color:var(--text2);display:flex;align-items:center;justify-content:center;transition:all var(--tr);}
+.m-close:hover{background:var(--red-bg);color:var(--red);}
+.m-body{padding:18px 20px;display:flex;flex-direction:column;gap:14px;}
+.f-field{display:flex;flex-direction:column;gap:6px;}
+.f-field label{font-size:0.73rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;}
+.f-field input,.f-field textarea{padding:10px 13px;border:1.5px solid var(--border);border-radius:9px;background:var(--bg2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;transition:border-color var(--tr);resize:none;}
+.f-field input:focus,.f-field textarea:focus{border-color:var(--accent);}
+.daily-preview{background:var(--accent-light);border-radius:9px;padding:10px;font-weight:800;color:var(--accent);font-size:1rem;text-align:center;}
+.grp-banner{background:var(--purple-bg);border-radius:8px;padding:8px 12px;font-size:0.77rem;color:var(--purple);line-height:1.4;display:none;}
+.m-foot{padding:13px 20px;border-top:1.5px solid var(--border);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
+
+/* BUTTONS */
+.btn{padding:9px 20px;border-radius:9px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.86rem;cursor:pointer;border:none;transition:opacity var(--tr);}
+.btn:hover{opacity:.82;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1.5px solid var(--red)!important;}
+.btn-ghost{background:var(--bg2);color:var(--text2);}
+.btn-purple{background:var(--purple);color:#fff;}
+
+/* HISTORY */
+.section-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.35rem;color:var(--text);margin-bottom:16px;}
+.hist-list{display:flex;flex-direction:column;gap:11px;}
+.hist-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;transition:box-shadow var(--tr);}
+.hist-card:hover{box-shadow:var(--shadow);}
+.hist-card.paid{border-left:4px solid var(--green);}
+.hist-card.unpaid{border-left:4px solid var(--red);}
+.hist-month{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;min-width:100px;}
+.hist-meta{flex:1;display:flex;gap:16px;flex-wrap:wrap;}
+.hm-item{text-align:center;}
+.hm-val{font-weight:700;font-size:0.95rem;color:var(--accent);}
+.hm-lbl{font-size:0.68rem;color:var(--text3);text-transform:uppercase;}
+.badge{padding:4px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+.b-paid{background:var(--green-bg);color:var(--green);}
+.b-unpaid{background:var(--red-bg);color:var(--red);}
+.icon-btn{width:32px;height:32px;border:1.5px solid var(--border);background:transparent;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all var(--tr);}
+.icon-btn:hover{background:var(--red-bg);border-color:var(--red);}
+
+/* ANALYTICS */
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;}
+.chart-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;overflow:hidden;}
+.chart-card h3{font-family:'Syne',sans-serif;font-weight:700;font-size:0.92rem;color:var(--text);margin-bottom:14px;}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 20px;color:var(--text3);}
+.empty .ei{font-size:2.8rem;margin-bottom:12px;}
+.empty h3{font-family:'Syne',sans-serif;font-size:1rem;color:var(--text2);margin-bottom:6px;}
+.empty p{font-size:0.82rem;}
+
+footer{text-align:center;padding:18px;font-size:0.74rem;color:var(--text3);border-top:1px solid var(--border);}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:var(--card);padding:10px 24px;border-radius:50px;font-size:0.82rem;font-weight:600;z-index:600;transition:transform .3s ease;white-space:nowrap;box-shadow:var(--shadow-lg);pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr">
+    <a class="logo" href="#">
+      <div class="logo-icon">🥛</div>
+      <div>
+        <div class="logo-text">Milk<span>Mate</span></div>
+        <div class="tagline">Smart Milk Billing</div>
+      </div>
+    </a>
+    <div class="hdr-right">
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-view="calendar">📅 Calendar</button>
+        <button class="nav-tab" data-view="history">📋 History</button>
+        <button class="nav-tab" data-view="analytics">📊 Analytics</button>
+      </nav>
+      <button class="theme-btn" id="themeBtn">🌙</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- CALENDAR VIEW -->
+  <div class="view active" id="view-calendar">
+
+    <!-- MONTH NAV -->
+    <div class="month-nav">
+      <button class="mnav-btn" id="prevMonth">
+        <span class="mnav-arrow">‹</span>
+        <span class="mnav-word">Prev</span>
+      </button>
+      <div class="month-center">
+        <div class="month-name" id="monthName">January</div>
+        <div class="month-year-lbl" id="monthYear">2026</div>
+      </div>
+      <button class="mnav-btn" id="nextMonth">
+        <span class="mnav-word">Next</span>
+        <span class="mnav-arrow">›</span>
+      </button>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="config-panel">
+      <div class="cfg-field">
+        <label>Price / Liter (₹)</label>
+        <input type="number" id="cfgPrice" min="0" step="0.5" placeholder="60">
+      </div>
+      <div class="cfg-field">
+        <label>Extra Charges (₹)</label>
+        <input type="number" id="cfgExtra" min="0" placeholder="0">
+      </div>
+      <div class="cfg-field">
+        <label>Discount (₹)</label>
+        <input type="number" id="cfgDisc" min="0" placeholder="0">
+      </div>
+      <button class="btn-apply" id="btnApplyConfig">Apply Settings</button>
+    </div>
+
+    <!-- GROUP DAYS -->
+    <div class="group-panel" id="groupPanel">
+      <div class="group-hdr" id="groupToggle">
+        <span style="font-size:1.1rem">📅</span>
+        <h3>Group Days Entry</h3>
+        <span class="g-badge">Bulk Fill</span>
+        <span class="g-chevron">▼</span>
+      </div>
+      <div class="group-body-wrap">
+        <div class="group-inputs">
+          <div class="g-field"><label>From Day</label><input type="number" id="gFrom" min="1" max="31" placeholder="1"></div>
+          <div class="g-field"><label>To Day</label><input type="number" id="gTo" min="1" max="31" placeholder="15"></div>
+          <div class="g-field"><label>Liters / Day</label><input type="number" id="gLiters" min="0" step="0.25" placeholder="1.5"></div>
+          <div class="g-field"><label>Note (optional)</label><input type="text" id="gNote" placeholder="Regular delivery"></div>
+          <div class="g-preview" id="gPreview">Select range →</div>
+          <button class="btn-gapply" id="btnGApply">➕ Apply Group</button>
+          <button class="btn-gclear" id="btnGClear">🗑 Clear All</button>
+        </div>
+        <div class="rules-list" id="rulesList"></div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" id="statL">0</div><div class="stat-lbl">Total Liters</div></div>
+      <div class="stat-card"><div class="stat-val" id="statD">0</div><div class="stat-lbl">Days Logged</div></div>
+      <div class="stat-card"><div class="stat-val" id="statA">₹0</div><div class="stat-lbl">Total Bill</div></div>
+      <div class="stat-card"><div class="stat-val" id="statP">₹0</div><div class="stat-lbl">Net Payable</div></div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="cal-wrap">
+      <div class="cal-hdr" id="calHdr"></div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+    <!-- PAYMENT -->
+    <div class="pay-row">
+      <div class="pay-status s-unpaid" id="payStatus">
+        <span class="sdot"></span><span id="payStatusTxt">Not Paid</span>
+      </div>
+      <button class="pay-btn mk-paid" id="payBtn">✓ Mark as Paid</button>
+      <span class="pay-ts" id="payTs"></span>
+    </div>
+  </div>
+
+  <!-- HISTORY VIEW -->
+  <div class="view" id="view-history">
+    <div class="section-title">Monthly History</div>
+    <div class="hist-list" id="histList"></div>
+  </div>
+
+  <!-- ANALYTICS VIEW -->
+  <div class="view" id="view-analytics">
+    <div class="section-title">Analytics</div>
+    <div class="chart-grid">
+      <div class="chart-card"><h3>Monthly Spending (₹)</h3><canvas id="cSpend"></canvas></div>
+      <div class="chart-card"><h3>Monthly Consumption (L)</h3><canvas id="cLiters"></canvas></div>
+      <div class="chart-card" style="grid-column:1/-1"><h3>Daily Consumption – Current Month</h3><canvas id="cDaily"></canvas></div>
+    </div>
+  </div>
+</main>
+
+<footer>MilkMate v2.0 &nbsp;·&nbsp; Smart Milk Billing &nbsp;·&nbsp; © 2026</footer>
+
+<!-- ENTRY MODAL -->
+<div class="overlay" id="entryOverlay">
+  <div class="modal-card">
+    <div class="m-head">
+      <h2 id="mTitle">Add Entry</h2>
+      <button class="m-close" id="mClose">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="f-field"><label>Date</label><input type="text" id="mDate" readonly></div>
+      <div class="grp-banner" id="grpBanner">⬡ This day was set by a Group Rule. Editing overrides only this day individually.</div>
+      <div class="f-field"><label>Milk Quantity (Liters)</label><input type="number" id="mLiters" min="0" step="0.25" placeholder="e.g. 1.5"></div>
+      <div class="f-field"><label>Price / Liter (₹)</label><input type="number" id="mPrice" min="0" step="0.5"></div>
+      <div class="daily-preview" id="mPreview">Daily Total: ₹0.00</div>
+      <div class="f-field"><label>Notes (optional)</label><textarea id="mNote" rows="2" placeholder="e.g. Extra guest"></textarea></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-danger" id="btnDelEntry" style="display:none">Delete</button>
+      <button class="btn btn-ghost" id="btnCancelEntry">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveEntry">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAY CONFIRM -->
+<div class="overlay" id="payOverlay">
+  <div class="pay-card">
+    <div class="pc-head">
+      <div class="pc-ico" id="pcIco">💰</div>
+      <h2 id="pcTitle">Confirm Payment</h2>
+      <p id="pcMsg">Review bill before confirming.</p>
+    </div>
+    <div class="pc-body" id="pcBody"></div>
+    <div class="pc-foot">
+      <button class="btn btn-ghost" id="btnPayCancel">Cancel</button>
+      <button class="btn btn-green" id="btnPayOk">✓ Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- GENERAL CONFIRM -->
+<div class="overlay" id="cfOverlay">
+  <div class="cf-card">
+    <div class="cf-ico" id="cfIco">⚠️</div>
+    <h3 id="cfTitle">Are you sure?</h3>
+    <div class="cf-msg" id="cfMsg">This cannot be undone.</div>
+    <div class="cf-btns">
+      <button class="btn btn-ghost" id="btnCfCancel">Cancel</button>
+      <button class="btn btn-danger" id="btnCfOk">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ═══════════════════════════════════════════
+// MILKMATE v2 — fixed & clean
+// ═══════════════════════════════════════════
+
+/* ── constants ── */
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const SK     = 'milkmate_v2';
+
+/* ── storage ── */
+function dbLoad() { try { return JSON.parse(localStorage.getItem(SK)) || {}; } catch { return {}; } }
+function dbSave(d) { try { localStorage.setItem(SK, JSON.stringify(d)); } catch { showToast('Storage error'); } }
+
+/* ── app state ── */
+let appData   = dbLoad();
+let curDate   = new Date();   // current month being viewed
+let editDay   = null;         // day being edited in modal
+let charts    = {};           // chart instances — declared BEFORE any function uses it
+let payOkCb   = null;         // payment confirm callback
+let cfOkCb    = null;         // general confirm callback
+
+/* ── helpers ── */
+function mKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+function mData(key) {
+  if (!appData[key]) appData[key] = { pricePerLiter:60, days:{}, paid:false, extraCharges:0, discount:0, paidAt:null, groupRules:[] };
+  if (!appData[key].groupRules) appData[key].groupRules = [];
+  return appData[key];
+}
+
+function calcPayable(md) {
+  let liters = 0;
+  Object.values(md.days).forEach(d => { liters += parseFloat(d.liters)||0; });
+  const amt = liters * (md.pricePerLiter||0);
+  const payable = Math.max(0, amt + (md.extraCharges||0) - (md.discount||0));
+  return { liters, amt, payable };
+}
+
+/* ── theme ── */
+let isDark = localStorage.getItem('mm_theme') === 'dark';
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+  localStorage.setItem('mm_theme', isDark ? 'dark' : 'light');
+  // only re-render charts if they already exist
+  if (Object.keys(charts).length > 0) renderCharts();
+}
+
+document.getElementById('themeBtn').addEventListener('click', function() {
+  isDark = !isDark;
+  applyTheme();
+});
+
+/* ── tab navigation ── */
+document.querySelectorAll('.nav-tab').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.nav-tab').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+    document.getElementById('view-' + btn.dataset.view).classList.add('active');
+    if (btn.dataset.view === 'analytics') renderCharts();
+    if (btn.dataset.view === 'history')   renderHistory();
+  });
+});
+
+/* ── month navigation ── */
+document.getElementById('prevMonth').addEventListener('click', function() {
+  curDate.setMonth(curDate.getMonth() - 1);
+  renderCalendar();
+});
+document.getElementById('nextMonth').addEventListener('click', function() {
+  curDate.setMonth(curDate.getMonth() + 1);
+  renderCalendar();
+});
+
+/* ── group panel toggle ── */
+document.getElementById('groupToggle').addEventListener('click', function() {
+  document.getElementById('groupPanel').classList.toggle('open');
+});
+
+/* ── group preview ── */
+function updateGPreview() {
+  var f = parseInt(document.getElementById('gFrom').value);
+  var t = parseInt(document.getElementById('gTo').value);
+  var l = parseFloat(document.getElementById('gLiters').value);
+  var md = mData(mKey(curDate));
+  if (f && t && l && f <= t && f >= 1 && t <= 31) {
+    var days = t - f + 1;
+    var total = (days * l * (md.pricePerLiter||60)).toFixed(2);
+    document.getElementById('gPreview').textContent = days + ' days × ' + l + 'L = ₹' + total;
+  } else {
+    document.getElementById('gPreview').textContent = 'Select range →';
+  }
+}
+document.getElementById('gFrom').addEventListener('input', updateGPreview);
+document.getElementById('gTo').addEventListener('input', updateGPreview);
+document.getElementById('gLiters').addEventListener('input', updateGPreview);
+
+/* ── apply group ── */
+document.getElementById('btnGApply').addEventListener('click', function() {
+  var from   = parseInt(document.getElementById('gFrom').value);
+  var to     = parseInt(document.getElementById('gTo').value);
+  var liters = parseFloat(document.getElementById('gLiters').value);
+  var note   = document.getElementById('gNote').value.trim();
+  var key    = mKey(curDate);
+  var md     = mData(key);
+  var dim    = new Date(curDate.getFullYear(), curDate.getMonth()+1, 0).getDate();
+
+  if (!from || !to || isNaN(liters) || liters <= 0) { showToast('Please fill From, To and Liters'); return; }
+  if (from < 1 || to > dim || from > to) { showToast('Days must be between 1 and ' + dim); return; }
+
+  var overlaps = md.groupRules.filter(function(r){ return !(r.to < from || r.from > to); });
+  var days  = to - from + 1;
+  var est   = (days * liters * (md.pricePerLiter||60)).toFixed(2);
+
+  // build confirm body HTML
+  var detailHTML =
+    '<div class="cf-detail">' +
+    'Days <strong>' + from + '–' + to + '</strong> &nbsp;·&nbsp; <strong>' + days + ' days</strong><br>' +
+    '<strong>' + liters + 'L / day</strong>' + (note ? ' · ' + note : '') + '<br>' +
+    'Est. Total: <strong>₹' + est + '</strong>' +
+    '</div>';
+
+  var warnHTML = overlaps.length
+    ? '<span style="color:var(--red);font-size:0.82rem;">⚠️ Overlaps ' + overlaps.length + ' existing rule(s) — they will be replaced.</span><br><br>'
+    : '';
+
+  showConfirm(
+    '📅',
+    'Apply Group Rule?',
+    detailHTML + warnHTML + 'Fill Days ' + from + '–' + to + ' in <strong>' + MONTHS[curDate.getMonth()] + ' ' + curDate.getFullYear() + '</strong>.',
+    'purple',
+    '➕ Apply',
+    function() {
+      // remove overlapping rules + their days
+      overlaps.forEach(function(r) {
+        for (var d = r.from; d <= r.to; d++) {
+          if (md.days[d] && md.days[d].groupId === r.id) delete md.days[d];
+        }
+      });
+      md.groupRules = md.groupRules.filter(function(r){ return r.to < from || r.from > to; });
+
+      // add new rule
+      var ruleId = Date.now();
+      md.groupRules.push({ id:ruleId, from:from, to:to, liters:liters, note:note, created: new Date().toISOString() });
+      for (var d = from; d <= to; d++) {
+        md.days[d] = { liters:liters, note:note, groupId:ruleId };
+      }
+      dbSave(appData);
+
+      // clear inputs
+      document.getElementById('gFrom').value = '';
+      document.getElementById('gTo').value = '';
+      document.getElementById('gLiters').value = '';
+      document.getElementById('gNote').value = '';
+      updateGPreview();
+      renderCalendar();
+      showToast('✓ Applied ' + liters + 'L to Days ' + from + '–' + to);
+    }
+  );
+});
+
+/* ── edit group rule (pre-fill form) ── */
+window.editGroupRule = function(ruleId) {
+  var key = mKey(curDate);
+  var md  = mData(key);
+  var rule = md.groupRules.find(function(r){ return r.id === ruleId; });
+  if (!rule) return;
+
+  // open panel & pre-fill
+  document.getElementById('groupPanel').classList.add('open');
+  document.getElementById('gFrom').value   = rule.from;
+  document.getElementById('gTo').value     = rule.to;
+  document.getElementById('gLiters').value = rule.liters;
+  document.getElementById('gNote').value   = rule.note || '';
+  updateGPreview();
+
+  // remove rule + its days so user can re-apply after editing
+  for (var d = rule.from; d <= rule.to; d++) {
+    if (md.days[d] && md.days[d].groupId === ruleId) delete md.days[d];
+  }
+  md.groupRules = md.groupRules.filter(function(r){ return r.id !== ruleId; });
+  dbSave(appData);
+  renderCalendar();
+  showToast('Edit values and click Apply Group');
+  document.getElementById('gFrom').focus();
+};
+
+/* ── delete group rule ── */
+window.deleteGroupRule = function(ruleId) {
+  var key  = mKey(curDate);
+  var md   = mData(key);
+  var rule = md.groupRules.find(function(r){ return r.id === ruleId; });
+  if (!rule) return;
+  showConfirm(
+    '🗑️',
+    'Delete Group Rule',
+    'Remove rule: Days ' + rule.from + '–' + rule.to + ' (' + rule.liters + 'L/day)?\nAll ' + (rule.to - rule.from + 1) + ' day entries from this rule will be deleted.',
+    'danger', 'Delete',
+    function() {
+      for (var d = rule.from; d <= rule.to; d++) {
+        if (md.days[d] && md.days[d].groupId === ruleId) delete md.days[d];
+      }
+      md.groupRules = md.groupRules.filter(function(r){ return r.id !== ruleId; });
+      dbSave(appData);
+      renderCalendar();
+      showToast('Group rule deleted');
+    }
+  );
+};
+
+/* ── clear all groups ── */
+document.getElementById('btnGClear').addEventListener('click', function() {
+  var key = mKey(curDate);
+  var md  = mData(key);
+  if (!md.groupRules.length) { showToast('No group rules to clear'); return; }
+  showConfirm(
+    '🗑️', 'Clear All Group Rules',
+    'Remove all ' + md.groupRules.length + ' group rule(s) and their day entries this month?',
+    'danger', 'Clear All',
+    function() {
+      var ids = new Set(md.groupRules.map(function(r){ return r.id; }));
+      Object.keys(md.days).forEach(function(d) {
+        if (ids.has(md.days[d].groupId)) delete md.days[d];
+      });
+      md.groupRules = [];
+      dbSave(appData);
+      renderCalendar();
+      showToast('All group rules cleared');
+    }
+  );
+});
+
+/* ── render group rules list ── */
+function renderRules(md) {
+  var el      = document.getElementById('rulesList');
+  var clearBt = document.getElementById('btnGClear');
+  if (!md.groupRules || !md.groupRules.length) { el.innerHTML = ''; clearBt.style.display = 'none'; return; }
+  clearBt.style.display = 'block';
+  el.innerHTML = md.groupRules.map(function(r) {
+    var days = r.to - r.from + 1;
+    var est  = (days * r.liters * md.pricePerLiter).toFixed(0);
+    var dt   = r.created ? new Date(r.created).toLocaleDateString('en-IN') : '';
+    return '<div class="rule-card">' +
+      '<div class="rule-info">' +
+        '<div class="rule-range">📅 Day ' + r.from + ' – ' + r.to + ' &nbsp;·&nbsp; ' + r.liters + 'L/day</div>' +
+        '<div class="rule-sub">' + days + ' days · Est. ₹' + est + (r.note ? ' · ' + r.note : '') + (dt ? ' · Added ' + dt : '') + '</div>' +
+      '</div>' +
+      '<button class="rule-edit-btn" onclick="editGroupRule(' + r.id + ')">✏️ Edit</button>' +
+      '<button class="rule-del-btn" onclick="deleteGroupRule(' + r.id + ')">🗑️</button>' +
+    '</div>';
+  }).join('');
+}
+
+/* ── render calendar ── */
+function renderCalendar() {
+  var d   = curDate;
+  var key = mKey(d);
+  var md  = mData(key);
+
+  document.getElementById('monthName').textContent = MONTHS[d.getMonth()];
+  document.getElementById('monthYear').textContent = d.getFullYear();
+  document.getElementById('cfgPrice').value = md.pricePerLiter || 60;
+  document.getElementById('cfgExtra').value = md.extraCharges  || 0;
+  document.getElementById('cfgDisc').value  = md.discount      || 0;
+
+  renderRules(md);
+
+  // Day-of-week headers
+  document.getElementById('calHdr').innerHTML = DAYS.map(function(day, i) {
+    return '<div class="cal-dow' + (i===0?' sun':'') + '">' + day + '</div>';
+  }).join('');
+
+  var year     = d.getFullYear();
+  var month    = d.getMonth();
+  var firstDay = new Date(year, month, 1).getDay();
+  var dim      = new Date(year, month+1, 0).getDate();
+  var prevDim  = new Date(year, month, 0).getDate();
+  var today    = new Date();
+
+  // set of days that belong to active group rules
+  var grpDaySet = new Set();
+  (md.groupRules||[]).forEach(function(r){ for (var i=r.from;i<=r.to;i++) grpDaySet.add(i); });
+
+  var html = '';
+
+  // previous month filler
+  for (var i = firstDay-1; i >= 0; i--)
+    html += '<div class="cal-cell faded"><div class="cal-dnum">' + (prevDim-i) + '</div></div>';
+
+  // current month days
+  for (var day = 1; day <= dim; day++) {
+    var isToday = today.getFullYear()===year && today.getMonth()===month && today.getDate()===day;
+    var dd      = md.days[day];
+    var dow     = new Date(year, month, day).getDay();
+    var sun     = dow === 0;
+    var isGrp   = !!(dd && dd.groupId && grpDaySet.has(day));
+
+    var cls = 'cal-cell';
+    if (isToday) cls += ' today';
+    if (dd) cls += isGrp ? ' has-group' : ' has-manual';
+
+    var inner = '<div class="cal-dnum' + (sun?' sun':'') + '">' + day + '</div>';
+    if (dd) {
+      var cost = (dd.liters * md.pricePerLiter).toFixed(1);
+      inner += '<div class="cal-chip ' + (isGrp?'grp':'manual') + '">' + dd.liters + 'L</div>';
+      inner += '<div class="cal-cost">₹' + cost + '</div>';
+      if (isGrp) inner += '<div class="grp-dot" title="Group Rule"></div>';
+    }
+    html += '<div class="' + cls + '" data-day="' + day + '">' + inner + '</div>';
+  }
+
+  // next month filler
+  var tail = (7 - (firstDay + dim) % 7) % 7;
+  for (var j = 1; j <= tail; j++)
+    html += '<div class="cal-cell faded"><div class="cal-dnum">' + j + '</div></div>';
+
+  document.getElementById('calGrid').innerHTML = html;
+
+  // attach click events
+  document.querySelectorAll('.cal-cell:not(.faded)').forEach(function(cell) {
+    cell.addEventListener('click', function() {
+      openEntryModal(parseInt(cell.dataset.day));
+    });
+  });
+
+  updateStats(md);
+  updatePayRow(md);
+  updateGPreview();
+}
+
+/* ── stats ── */
+function updateStats(md) {
+  if (!md) md = mData(mKey(curDate));
+  var res = calcPayable(md);
+  document.getElementById('statL').textContent = res.liters.toFixed(1);
+  document.getElementById('statD').textContent = Object.keys(md.days).length;
+  document.getElementById('statA').textContent = '₹' + res.amt.toFixed(0);
+  document.getElementById('statP').textContent = '₹' + res.payable.toFixed(0);
+}
+
+/* ── payment row ── */
+function updatePayRow(md) {
+  if (!md) md = mData(mKey(curDate));
+  var ps  = document.getElementById('payStatus');
+  var btn = document.getElementById('payBtn');
+  var ts  = document.getElementById('payTs');
+  if (md.paid) {
+    ps.className = 'pay-status s-paid';
+    document.getElementById('payStatusTxt').textContent = 'Paid';
+    btn.className = 'pay-btn mk-unpaid';
+    btn.textContent = '✕ Mark as Unpaid';
+    ts.textContent = md.paidAt ? 'Paid: ' + new Date(md.paidAt).toLocaleDateString('en-IN') : '';
+  } else {
+    ps.className = 'pay-status s-unpaid';
+    document.getElementById('payStatusTxt').textContent = 'Not Paid';
+    btn.className = 'pay-btn mk-paid';
+    btn.textContent = '✓ Mark as Paid';
+    ts.textContent = '';
+  }
+}
+
+/* ── config apply ── */
+document.getElementById('btnApplyConfig').addEventListener('click', function() {
+  var price = parseFloat(document.getElementById('cfgPrice').value);
+  var extra = parseFloat(document.getElementById('cfgExtra').value) || 0;
+  var disc  = parseFloat(document.getElementById('cfgDisc').value)  || 0;
+  if (!price || price <= 0) { showToast('Enter a valid price per liter'); return; }
+  var key = mKey(curDate);
+  var md  = mData(key);
+  md.pricePerLiter = price;
+  md.extraCharges  = extra;
+  md.discount      = disc;
+  dbSave(appData);
+  renderCalendar();
+  showToast('Settings saved ✓');
+});
+
+/* ── payment confirm ── */
+document.getElementById('payBtn').addEventListener('click', function() {
+  var key = mKey(curDate);
+  var md  = mData(key);
+  var res = calcPayable(md);
+  var mlbl = MONTHS[curDate.getMonth()] + ' ' + curDate.getFullYear();
+  var okBtn = document.getElementById('btnPayOk');
+
+  document.getElementById('pcIco').textContent = md.paid ? '🔄' : '💰';
+  document.getElementById('pcTitle').textContent = md.paid ? 'Mark Month as Unpaid?' : 'Mark Month as Paid?';
+  document.getElementById('pcMsg').textContent  = md.paid
+    ? 'You are marking ' + mlbl + ' as UNPAID. Payment record will be cleared.'
+    : 'You are marking ' + mlbl + ' as PAID. Review the bill below before confirming.';
+
+  if (!md.paid) {
+    document.getElementById('pcBody').innerHTML =
+      pcRow('Month', mlbl, '') +
+      pcRow('Total Liters', res.liters.toFixed(2) + ' L', '') +
+      pcRow('Rate / Liter', '₹' + md.pricePerLiter, '') +
+      pcRow('Milk Amount', '₹' + res.amt.toFixed(2), '') +
+      (md.extraCharges ? pcRow('Extra Charges', '+ ₹' + md.extraCharges.toFixed(2), '') : '') +
+      (md.discount     ? pcRow('Discount', '- ₹' + md.discount.toFixed(2), '') : '') +
+      pcRow('Net Payable', '₹' + res.payable.toFixed(2), 'g');
+    okBtn.className = 'btn btn-green';
+    okBtn.textContent = '✓ Confirm Paid';
+    payOkCb = function() {
+      md.paid = true;
+      md.paidAt = new Date().toISOString();
+      dbSave(appData);
+      updatePayRow(md);
+      showToast('Month marked as Paid 🎉');
+    };
+  } else {
+    document.getElementById('pcBody').innerHTML =
+      pcRow('Previously paid on', md.paidAt ? new Date(md.paidAt).toLocaleDateString('en-IN') : 'N/A', 'r') +
+      pcRow('Month', mlbl, '') +
+      pcRow('Net Amount', '₹' + res.payable.toFixed(2), '');
+    okBtn.className = 'btn btn-danger';
+    okBtn.textContent = 'Mark as Unpaid';
+    payOkCb = function() {
+      md.paid = false;
+      md.paidAt = null;
+      dbSave(appData);
+      updatePayRow(md);
+      showToast('Marked as Unpaid');
+    };
+  }
+  document.getElementById('payOverlay').classList.add('open');
+});
+
+function pcRow(lbl, val, cls) {
+  return '<div class="pc-row' + (cls?' '+cls:'') + '">' +
+    '<span class="pc-lbl' + (cls?' '+cls:'') + '">' + lbl + '</span>' +
+    '<span class="pc-val' + (cls?' '+cls:'') + '">' + val + '</span>' +
+    '</div>';
+}
+
+document.getElementById('btnPayCancel').addEventListener('click', function() {
+  document.getElementById('payOverlay').classList.remove('open');
+  payOkCb = null;
+});
+document.getElementById('btnPayOk').addEventListener('click', function() {
+  document.getElementById('payOverlay').classList.remove('open');
+  if (payOkCb) { payOkCb(); payOkCb = null; }
+});
+document.getElementById('payOverlay').addEventListener('click', function(e) {
+  if (e.target === e.currentTarget) { document.getElementById('payOverlay').classList.remove('open'); payOkCb = null; }
+});
+
+/* ── entry modal ── */
+function openEntryModal(day) {
+  var key = mKey(curDate);
+  var md  = mData(key);
+  var dd  = md.days[day];
+  editDay = day;
+
+  var dateStr = day + ' ' + MONTHS[curDate.getMonth()] + ' ' + curDate.getFullYear();
+  document.getElementById('mTitle').textContent   = dd ? 'Edit – ' + dateStr : 'Add – ' + dateStr;
+  document.getElementById('mDate').value          = dateStr;
+  document.getElementById('mLiters').value        = dd ? dd.liters : '';
+  document.getElementById('mPrice').value         = md.pricePerLiter || 60;
+  document.getElementById('mNote').value          = dd ? (dd.note||'') : '';
+  document.getElementById('btnDelEntry').style.display = dd ? 'block' : 'none';
+  document.getElementById('grpBanner').style.display  = (dd && dd.groupId) ? 'block' : 'none';
+  calcModalPreview();
+  document.getElementById('entryOverlay').classList.add('open');
+  setTimeout(function(){ document.getElementById('mLiters').focus(); }, 60);
+}
+
+function calcModalPreview() {
+  var l = parseFloat(document.getElementById('mLiters').value) || 0;
+  var p = parseFloat(document.getElementById('mPrice').value)  || 0;
+  document.getElementById('mPreview').textContent = 'Daily Total: ₹' + (l*p).toFixed(2);
+}
+document.getElementById('mLiters').addEventListener('input', calcModalPreview);
+document.getElementById('mPrice').addEventListener('input', calcModalPreview);
+
+function closeEntryModal() { document.getElementById('entryOverlay').classList.remove('open'); editDay = null; }
+document.getElementById('mClose').addEventListener('click', closeEntryModal);
+document.getElementById('btnCancelEntry').addEventListener('click', closeEntryModal);
+document.getElementById('entryOverlay').addEventListener('click', function(e){ if(e.target===e.currentTarget) closeEntryModal(); });
+
+document.getElementById('btnSaveEntry').addEventListener('click', function() {
+  var liters = parseFloat(document.getElementById('mLiters').value);
+  var price  = parseFloat(document.getElementById('mPrice').value);
+  var note   = document.getElementById('mNote').value.trim();
+  if (isNaN(liters) || liters < 0) { showToast('Enter a valid quantity'); return; }
+  if (!price || price <= 0)        { showToast('Enter a valid price'); return; }
+
+  var key = mKey(curDate);
+  var md  = mData(key);
+  md.pricePerLiter = price;
+
+  if (liters === 0) {
+    delete md.days[editDay];
+  } else {
+    md.days[editDay] = { liters:liters, note:note };
+    // strip groupId: this day is now a manual override
+  }
+  dbSave(appData);
+  closeEntryModal();
+  renderCalendar();
+  showToast('Entry saved ✓');
+});
+
+document.getElementById('btnDelEntry').addEventListener('click', function() {
+  var day = editDay;
+  showConfirm('🗑️', 'Delete Entry', 'Remove milk entry for Day ' + day + '?', 'danger', 'Delete', function() {
+    var key = mKey(curDate);
+    var md  = mData(key);
+    delete md.days[day];
+    dbSave(appData);
+    closeEntryModal();
+    renderCalendar();
+    showToast('Entry deleted');
+  });
+});
+
+/* ── general confirm ── */
+function showConfirm(ico, title, msgHTML, style, okLabel, cb) {
+  document.getElementById('cfIco').textContent   = ico;
+  document.getElementById('cfTitle').textContent = title;
+  document.getElementById('cfMsg').innerHTML     = msgHTML;
+  var okBtn = document.getElementById('btnCfOk');
+  okBtn.className  = style === 'purple' ? 'btn btn-purple' : 'btn btn-danger';
+  okBtn.textContent = okLabel || 'Confirm';
+  cfOkCb = cb;
+  document.getElementById('cfOverlay').classList.add('open');
+}
+
+document.getElementById('btnCfCancel').addEventListener('click', function() {
+  document.getElementById('cfOverlay').classList.remove('open'); cfOkCb = null;
+});
+document.getElementById('btnCfOk').addEventListener('click', function() {
+  document.getElementById('cfOverlay').classList.remove('open');
+  if (cfOkCb) { cfOkCb(); cfOkCb = null; }
+});
+document.getElementById('cfOverlay').addEventListener('click', function(e) {
+  if (e.target===e.currentTarget) { document.getElementById('cfOverlay').classList.remove('open'); cfOkCb = null; }
+});
+
+/* ── history ── */
+function renderHistory() {
+  var el   = document.getElementById('histList');
+  var keys = Object.keys(appData).sort(function(a,b){ return b.localeCompare(a); });
+  if (!keys.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">📋</div><h3>No history yet</h3><p>Add milk entries to see monthly history here.</p></div>';
+    return;
+  }
+  el.innerHTML = keys.map(function(key) {
+    var md   = appData[key];
+    var parts = key.split('-');
+    var lbl  = MONTHS[parseInt(parts[1])-1] + ' ' + parts[0];
+    var res  = calcPayable(md);
+    var grps = (md.groupRules||[]).length;
+    return '<div class="hist-card ' + (md.paid?'paid':'unpaid') + '">' +
+      '<div class="hist-month">' + lbl + '</div>' +
+      '<div class="hist-meta">' +
+        '<div class="hm-item"><div class="hm-val">' + res.liters.toFixed(1) + 'L</div><div class="hm-lbl">Liters</div></div>' +
+        '<div class="hm-item"><div class="hm-val">₹' + res.payable.toFixed(0) + '</div><div class="hm-lbl">Payable</div></div>' +
+        '<div class="hm-item"><div class="hm-val">₹' + (md.pricePerLiter||0) + '</div><div class="hm-lbl">Rate/L</div></div>' +
+        (grps ? '<div class="hm-item"><div class="hm-val" style="color:var(--purple)">' + grps + '</div><div class="hm-lbl">Groups</div></div>' : '') +
+      '</div>' +
+      '<span class="badge ' + (md.paid?'b-paid':'b-unpaid') + '">' + (md.paid?'Paid':'Unpaid') + '</span>' +
+      '<button class="icon-btn" data-del="' + key + '" title="Delete month">🗑️</button>' +
+    '</div>';
+  }).join('');
+
+  el.querySelectorAll('[data-del]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var key = btn.dataset.del;
+      showConfirm('🗑️', 'Delete Month', 'Delete ALL records for ' + key + '? This cannot be undone.', 'danger', 'Delete', function() {
+        delete appData[key];
+        dbSave(appData);
+        renderHistory();
+        showToast('Month deleted');
+      });
+    });
+  });
+}
+
+/* ── charts ── */
+function chartColors() {
+  var cs = getComputedStyle(document.documentElement);
+  return {
+    accent: cs.getPropertyValue('--accent').trim(),
+    accent2:cs.getPropertyValue('--accent2').trim(),
+    text3:  cs.getPropertyValue('--text3').trim(),
+    border: cs.getPropertyValue('--border').trim()
+  };
+}
+
+function destroyCharts() {
+  Object.keys(charts).forEach(function(k) { try { charts[k].destroy(); } catch(e){} });
+  charts = {};
+}
+
+function renderCharts() {
+  destroyCharts();
+  var cc = chartColors();
+  Chart.defaults.color       = cc.text3;
+  Chart.defaults.borderColor = cc.border;
+
+  var keys   = Object.keys(appData).sort();
+  var labels = keys.map(function(k) {
+    var p = k.split('-');
+    return MONTHS[parseInt(p[1])-1].slice(0,3) + ' ' + p[0].slice(2);
+  });
+  var spends = keys.map(function(k) {
+    var md = appData[k]; var res = calcPayable(md);
+    return res.payable;
+  });
+  var liters = keys.map(function(k) {
+    var md = appData[k]; var res = calcPayable(md);
+    return parseFloat(res.liters.toFixed(2));
+  });
+
+  function barConf(lbl, data, color) {
+    return {
+      type:'bar',
+      data:{ labels:labels, datasets:[{ label:lbl, data:data, backgroundColor:color+'99', borderColor:color, borderWidth:2, borderRadius:6 }] },
+      options:{ responsive:true, plugins:{legend:{display:false}},
+        scales:{ y:{grid:{color:cc.border},ticks:{color:cc.text3}}, x:{grid:{display:false},ticks:{color:cc.text3}} } }
+    };
+  }
+
+  charts.spend  = new Chart(document.getElementById('cSpend').getContext('2d'),  barConf('₹ Spending', spends, cc.accent));
+  charts.liters = new Chart(document.getElementById('cLiters').getContext('2d'), barConf('Liters', liters, cc.accent2));
+
+  // daily for current month
+  var key = mKey(curDate);
+  var md  = appData[key] || {};
+  var dim = new Date(curDate.getFullYear(), curDate.getMonth()+1, 0).getDate();
+  var dl  = [];
+  var dd2 = [];
+  for (var i = 1; i <= dim; i++) {
+    dl.push(i);
+    dd2.push(parseFloat((md.days && md.days[i] && md.days[i].liters) ? md.days[i].liters : 0));
+  }
+
+  charts.daily = new Chart(document.getElementById('cDaily').getContext('2d'), {
+    type:'line',
+    data:{ labels:dl, datasets:[{
+      label:'Liters', data:dd2,
+      borderColor:cc.accent, backgroundColor:cc.accent+'22',
+      fill:true, tension:0.4, pointBackgroundColor:cc.accent, pointRadius:4
+    }]},
+    options:{ responsive:true, plugins:{legend:{display:false}},
+      scales:{ y:{grid:{color:cc.border},ticks:{color:cc.text3},beginAtZero:true}, x:{grid:{display:false},ticks:{color:cc.text3}} } }
+  });
+}
+
+/* ── toast ── */
+var toastTimer = null;
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2800);
+}
+
+/* ── keyboard ── */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeEntryModal();
+    document.getElementById('payOverlay').classList.remove('open');
+    document.getElementById('cfOverlay').classList.remove('open');
+    payOkCb = null; cfOkCb = null;
+  }
+});
+
+/* ── INIT ── */
+applyTheme();   // called AFTER charts is declared — safe now
+renderCalendar();
+</script>
+</body>
+</html>
